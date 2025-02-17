@@ -51,8 +51,7 @@ const CartePok = ({pokemon}) => {
             return typeImages[type] || typeImages['Normal'];
         }
     };
-    
-    // Example usage
+        
     const backgroundColor = getTypeInfo(pokemon.type[0], 'color');
     const typeImage = getTypeInfo(pokemon.type[0], 'image');
 
