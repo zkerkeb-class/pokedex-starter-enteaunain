@@ -61,7 +61,7 @@ const CartePok = ({pokemon}) => {
                     <div className='pokemon-card-header'>
                         <span className='pokemon-card-title'>&nbsp;{pokemon.name.french}</span>
                         <span className='pokemon-card-pv'>{pokemon.base.HP} HP&nbsp;</span>
-                        <img src={typeImage} style={{ width: '20px', height: '20px' }} />
+                        <img src={typeImage} style={{ width: '20px', height: '20px', marginRight: '2%'}} />
                     </div>
                     <div className='pokemon-card-image-back'>
                         <div className='pokemon-card-image-contour'>
