@@ -2,61 +2,100 @@ import './index.css'
 
 const CartePok = ({pokemon}) => {
 
-    const getTypeColor = (type) => {
-        switch (type) {
-            case 'Fire':
-                return '#F08030';
-            case 'Water':
-                return '#6890F0';
-            case 'Grass':
-                return '#78C850';
-            case 'Electric':
-                return '#F8D030';
-            case 'Ice':
-                return '#98D8D8';
-            case 'Fighting':
-                return '#C03028';
-            case 'Poison':
-                return '#A040A0';
-            case 'Ground':
-                return '#E0C068';
-            case 'Flying':
-                return '#A890F0';
-            case 'Psychic':
-                return '#F85888';
-            case 'Bug':
-                return '#A8B820';
-            case 'Rock':
-                return '#B8A038';
-            case 'Ghost':
-                return '#705898';
-            case 'Dark':
-                return '#705848';
-            case 'Dragon':
-                return '#7038F8';
-            case 'Steel':
-                return '#B8B8D0';
-            case 'Fairy':
-                return '#EE99AC';
-            default:
-                return '#A8A878';
+    const getTypeInfo = (type, infoType = 'color') => {
+        const typeColors = {
+            'Fire': '#F5A582',
+            'Water': '#A0C8F0',
+            'Grass': '#A8E080',
+            'Electric': '#FBE870',
+            'Ice': '#C0E8E8',
+            'Fighting': '#E08070',
+            'Poison': '#C080C0',
+            'Ground': '#F0D8A0',
+            'Flying': '#C8B0F0',
+            'Psychic': '#F8A8B8',
+            'Bug': '#C8D850',
+            'Rock': '#D8C080',
+            'Ghost': '#A890C8',
+            'Dark': '#A89080',
+            'Dragon': '#A890F8',
+            'Steel': '#D8D8E0',
+            'Fairy': '#F4C0C8',
+            'Normal': '#D0D0A8'
+        };
+    
+        const typeImages = {
+            'Fire': 'src/assets/types/fire.png',
+            'Water': 'src/assets/types/water.png',
+            'Grass': 'src/assets/types/grass.png',
+            'Electric': 'src/assets/types/electric.png',
+            'Ice': 'src/assets/types/ice.png',
+            'Fighting': 'src/assets/types/fighting.png',
+            'Poison': 'src/assets/types/poison.png',
+            'Ground': 'src/assets/types/ground.png',
+            'Flying': 'src/assets/types/flying.png',
+            'Psychic': 'src/assets/types/psychic.png',
+            'Bug': 'src/assets/types/bug.png',
+            'Rock': 'src/assets/types/rock.png',
+            'Ghost': 'src/assets/types/ghost.png',
+            'Dark': 'src/assets/types/dark.png',
+            'Dragon': 'src/assets/types/dragon.png',
+            'Steel': 'src/assets/types/steel.png',
+            'Fairy': 'src/assets/types/fairy.png',
+            'Normal': 'src/assets/types/normal.png'
+        };
+    
+        if (infoType === 'color') {
+            return typeColors[type] || typeColors['Normal'];
+        } else if (infoType === 'image') {
+            return typeImages[type] || typeImages['Normal'];
         }
     };
+    
+    // Example usage
+    const backgroundColor = getTypeInfo(pokemon.type[0], 'color');
+    const typeImage = getTypeInfo(pokemon.type[0], 'image');
 
     return (
-        <div className="pokemon-card">
-            
-            <span><u>{pokemon.name.french}</u></span>
-            <img src={pokemon.image} style={{height:180}} alt={pokemon.name.french} />
-
-            <div className="pokemon-type-container">
-            {pokemon.type.map((type, index) => {
-                return <span style={{ backgroundColor: getTypeColor(type) }} key={type}>{type}</span>;
-            })}
-            </div>
-            <span className='pokemon-stat'>Attaque: {pokemon.base.Attack}, <br/>Défense: {pokemon.base.Defense}, <br/>HP: {pokemon.base.HP}, <br/>Attaque Spé.: {pokemon.base["Sp. Attack"]}, <br/>Défense Spé.: {pokemon.base["Sp. Defense"]}, <br/>Vitesse: {pokemon.base.Speed}</span>
+        <div className='pokemon-card'>
+                <div className='pokemon-card-background' style={{ backgroundColor }}>
+                    <div className='pokemon-card-header'>
+                        <span className='pokemon-card-title'>&nbsp;{pokemon.name.french}</span>
+                        <span className='pokemon-card-pv'>{pokemon.base.HP} HP&nbsp;</span>
+                        <img src={typeImage} style={{ width: '20px', height: '20px' }} />
+                    </div>
+                    <div className='pokemon-card-image-back'>
+                        <div className='pokemon-card-image-contour'>
+                            <div className='pokemon-card-image-contour-2'>
+                            <img src={pokemon.image} style={{height:160}} alt={pokemon.name.french}></img>
+                            </div>
+                        </div>   
+                    </div>
+                    <div className='pokemon-card-stat'>
+                        <div className='pokemon-stat-title'>
+                            <span>&nbsp;Attaque</span>
+                            <span><br></br>&nbsp;Défense</span>
+                            <span><br></br>&nbsp;Attaque Spé.</span>
+                            <span><br></br>&nbsp;Défense Spé.</span>
+                            <span><br></br>&nbsp;Vitesse</span>
+                        </div>
+                        <div className='pokemon-stat-value'>
+                            <span>{pokemon.base.Attack}</span>
+                            <span><br></br>{pokemon.base.Defense}</span>
+                            <span><br></br>{pokemon.base["Sp. Attack"]}</span>
+                            <span><br></br>{pokemon.base["Sp. Defense"]}</span>
+                            <span><br></br>{pokemon.base.Speed}</span>
+                        </div>
+                    </div>
+                    <div className='pokemon-card-id'>
+                        <span>{pokemon.id}/152&nbsp;</span>
+                    </div>
+                </div>
         </div>
+
+        
     )
 } 
 
 export default CartePok
+
