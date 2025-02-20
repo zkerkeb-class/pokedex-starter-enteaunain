@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CartePok from './components/cartePok/cartePok.jsx';
 import './App.css';
-import pokemons from './assets/pokemons.js';
+import axios from 'axios';
+import getAllPokemons from './services/api.js';
 
 function App() {
+
+  const [pokemons, setPokemons] = useState([]);
+
+  useEffect(() => {
+    getAllPokemons().then((data) => {
+      if (data) {
+        setPokemons(data);
+      }
+    });
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('');
 

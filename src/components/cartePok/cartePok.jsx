@@ -66,7 +66,7 @@ const CartePok = ({pokemon}) => {
                     <div className='pokemon-card-image-back'>
                         <div className='pokemon-card-image-contour'>
                             <div className='pokemon-card-image-contour-2'>
-                            <img src={pokemon.image} style={{height:160}} alt={pokemon.name.french}></img>
+                                    <img src={pokemon.image} style={{height:160}} alt={pokemon.name.french}></img>
                             </div>
                         </div>   
                     </div>
