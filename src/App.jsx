@@ -1,35 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from 'react';
+import CartePok from './components/cartePok/cartePok.jsx';
+import './App.css';
+import axios from 'axios';
+import getAllPokemons from './services/api.js';
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [pokemons, setPokemons] = useState([]);
+
+  useEffect(() => {
+    getAllPokemons().then((data) => {
+      if (data) {
+        setPokemons(data);
+      }
+    });
+  }, []);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleTypeChange = (event) => {
+    setSelectedType(event.target.value);
+  };
+
+  const filteredPokemons = pokemons.filter((pokemon) => {
+    const matchesSearchTerm = pokemon.name.french.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedType === '' || pokemon.type.includes(selectedType);
+    return matchesSearchTerm && matchesType;
+  });
+
+  const uniqueTypes = [...new Set(pokemons.flatMap(pokemon => pokemon.type))];
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <h1>Pokedex Régional</h1>
+      <input
+        type="text"
+        placeholder="Chercher un Pokémon"
+        value={searchTerm}
+        onChange={handleSearchChange}
+      />
+      <br/>
+      <br/>
+      <select value={selectedType} onChange={handleTypeChange}>
+        <option value="">Tous les types</option>
+        {uniqueTypes.map((type, index) => (
+          <option key={index} value={type}>{type}</option>
+        ))}
+      </select>
+      <br/>
+      <br/>
+      <div className="grid-container">
+        {filteredPokemons.map((pokemon, index) => (
+          <span key={index}><CartePok pokemon={pokemon} /></span>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
