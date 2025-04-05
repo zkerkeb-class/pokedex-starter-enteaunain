@@ -36,7 +36,7 @@ const createPokemon = (pokemon) => {
   return axios({
     method: "POST",
     url: "http://localhost:3000/api/pokemons",
-    body: pokemon,
+    data: pokemon,
   }).then((response) => {
     return response.data;
   })
@@ -46,7 +46,7 @@ const updatePokemon = (pokemon, id) => {
   return axios({
     method: "PUT",
     url: `http://localhost:3000/api/pokemons/${id}`,
-    body: pokemon,
+    data: pokemon,
   }).then((response) => {
     return response.data;
   })
@@ -61,4 +61,13 @@ const deletePokemon = (id) => {
   })
 }
 
-export { getAllPokemons, getPokemonById, getTypes, createPokemon, updatePokemon, deletePokemon };
+const getNumberOfPokemons = () => {
+  return axios({
+    method: "GET",
+    url: "http://localhost:3000/api/pokemons/count",
+  }).then((response) => {
+    return response.data;
+  })
+};
+
+export { getAllPokemons, getPokemonById, getTypes, createPokemon, updatePokemon, deletePokemon, getNumberOfPokemons };

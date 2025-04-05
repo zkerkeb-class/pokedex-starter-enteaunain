@@ -6,7 +6,7 @@
 }
 
 body {
-  background-image: url('src/assets/background/background.jpg');
+  background-image: url('/src/assets/background/background.jpg');
   background-size: auto; /* Utilise la taille naturelle de l'image */
   background-repeat: repeat; /* Répète l'image */
   background-attachment: scroll; /* L'image défile avec la page */
@@ -14,19 +14,6 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif; 
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
 .grid-container {

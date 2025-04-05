@@ -43,6 +43,7 @@
   text-align: right;
   font-weight: bold;
   color: red;
+  margin-left: auto;
 }
 
 .pokemon-card-image-back {
