@@ -12,17 +12,19 @@ const getAllPokemons = () => {
 };
 
 
-const getPokemonById = ({id}) => {
-  axios({
+const getPokemonById = (id) => {
+  return axios({
     method: "GET",
     url: `http://localhost:3000/api/pokemons/${id}`,
   }).then((response) => {
     return response.data;
-  })
+  }).catch((error) => {
+    console.error(`There was an error fetching the pokemon with id ${id}!`, error);
+  });
 };
 
 const getTypes = () => {
-  axios({
+  return axios({
     method: "GET",
     url: "http://localhost:3000/api/pokemons/types",
   }).then((response) => {
@@ -31,7 +33,7 @@ const getTypes = () => {
 };
 
 const createPokemon = (pokemon) => {
-  axios({
+  return axios({
     method: "POST",
     url: "http://localhost:3000/api/pokemons",
     body: pokemon,
@@ -41,7 +43,7 @@ const createPokemon = (pokemon) => {
 };
 
 const updatePokemon = (pokemon, id) => {
-  axios({
+  return axios({
     method: "PUT",
     url: `http://localhost:3000/api/pokemons/${id}`,
     body: pokemon,
@@ -51,7 +53,7 @@ const updatePokemon = (pokemon, id) => {
 };
 
 const deletePokemon = (id) => {
-  axios({
+  return axios({
     method: "DELETE",
     url: `http://localhost:3000/api/pokemons/${id}`,
   }).then((response) => {

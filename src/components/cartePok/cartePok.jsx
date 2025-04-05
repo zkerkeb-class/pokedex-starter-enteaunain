@@ -23,26 +23,26 @@ const CartePok = ({pokemon}) => {
             'Fairy': '#F4C0C8',
             'Normal': '#D0D0A8'
         };
-    
+
         const typeImages = {
-            'Fire': 'src/assets/types/fire.png',
-            'Water': 'src/assets/types/water.png',
-            'Grass': 'src/assets/types/grass.png',
-            'Electric': 'src/assets/types/electric.png',
-            'Ice': 'src/assets/types/ice.png',
-            'Fighting': 'src/assets/types/fighting.png',
-            'Poison': 'src/assets/types/poison.png',
-            'Ground': 'src/assets/types/ground.png',
-            'Flying': 'src/assets/types/flying.png',
-            'Psychic': 'src/assets/types/psychic.png',
-            'Bug': 'src/assets/types/bug.png',
-            'Rock': 'src/assets/types/rock.png',
-            'Ghost': 'src/assets/types/ghost.png',
-            'Dark': 'src/assets/types/dark.png',
-            'Dragon': 'src/assets/types/dragon.png',
-            'Steel': 'src/assets/types/steel.png',
-            'Fairy': 'src/assets/types/fairy.png',
-            'Normal': 'src/assets/types/normal.png'
+            'Fire': 'http://localhost:3000/assets/types/fire.png',
+            'Water': 'http://localhost:3000/assets/types/water.png',
+            'Grass': 'http://localhost:3000/assets/types/grass.png',
+            'Electric': 'http://localhost:3000/assets/types/electric.png',
+            'Ice': 'http://localhost:3000/assets/types/ice.png',
+            'Fighting': 'http://localhost:3000/assets/types/fighting.png',
+            'Poison': 'http://localhost:3000/assets/types/poison.png',
+            'Ground': 'http://localhost:3000/assets/types/ground.png',
+            'Flying': 'http://localhost:3000/assets/types/flying.png',
+            'Psychic': 'http://localhost:3000/assets/types/psychic.png',
+            'Bug': 'http://localhost:3000/assets/types/bug.png',
+            'Rock': 'http://localhost:3000/assets/types/rock.png',
+            'Ghost': 'http://localhost:3000/assets/types/ghost.png',
+            'Dark': 'http://localhost:3000/assets/types/dark.png',
+            'Dragon': 'http://localhost:3000/assets/types/dragon.png',
+            'Steel': 'http://localhost:3000/assets/types/steel.png',
+            'Fairy': 'http://localhost:3000/assets/types/fairy.png',
+            'Normal': 'http://localhost:3000/assets/types/normal.png'
         };
     
         if (infoType === 'color') {
@@ -56,7 +56,8 @@ const CartePok = ({pokemon}) => {
     const typeImage = getTypeInfo(pokemon.type[0], 'image');
 
     return (
-        <div className='pokemon-card'>
+        <a href={`/pokemon/${pokemon.id}`} className='pokemon-card-link'>
+            <div className='pokemon-card'>
                 <div className='pokemon-card-background' style={{ backgroundColor }}>
                     <div className='pokemon-card-header'>
                         <span className='pokemon-card-title'>&nbsp;{pokemon.name.french}</span>
@@ -66,7 +67,7 @@ const CartePok = ({pokemon}) => {
                     <div className='pokemon-card-image-back'>
                         <div className='pokemon-card-image-contour'>
                             <div className='pokemon-card-image-contour-2'>
-                                    <img src={pokemon.image} style={{height:160}} alt={pokemon.name.french}></img>
+                                <img src={pokemon.image} style={{height:160}} alt={pokemon.name.french}></img>
                             </div>
                         </div>   
                     </div>
@@ -90,10 +91,9 @@ const CartePok = ({pokemon}) => {
                         <span>{pokemon.id}/152&nbsp;</span>
                     </div>
                 </div>
-        </div>
-
-        
-    )
+            </div>
+        </a>
+    );
 } 
 
 export default CartePok
