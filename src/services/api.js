@@ -33,29 +33,41 @@ const getTypes = () => {
 };
 
 const createPokemon = (pokemon) => {
+  const token = localStorage.getItem('jwtToken');
   return axios({
     method: "POST",
     url: "http://localhost:3000/api/pokemons",
     data: pokemon,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   }).then((response) => {
     return response.data;
   })
 };
 
 const updatePokemon = (pokemon, id) => {
+  const token = localStorage.getItem('jwtToken');
   return axios({
     method: "PUT",
     url: `http://localhost:3000/api/pokemons/${id}`,
     data: pokemon,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   }).then((response) => {
     return response.data;
   })
 };
 
 const deletePokemon = (id) => {
+  const token = localStorage.getItem('jwtToken');
   return axios({
     method: "DELETE",
     url: `http://localhost:3000/api/pokemons/${id}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   }).then((response) => {
     return response.data;
   })
