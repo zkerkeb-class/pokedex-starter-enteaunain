@@ -1,11 +1,13 @@
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router"; // Import useNavigate
 import { useEffect, useState } from "react";
-import { getPokemonById, updatePokemon, deletePokemon, getNumberOfPokemons } from "/src/services/api";
+import { getPokemonById, updatePokemon, deletePokemon } from "/src/services/api";
 import CartePok from "../components/cartePok/cartePok";
 import './pokemon.css';
+import { jwtDecode } from "jwt-decode";
 
 const Pokemon = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [pokemon, setPokemon] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -19,6 +21,9 @@ const Pokemon = () => {
     const [speed, setSpeed] = useState("");
     const [type, setType] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+
+    // Récupérer le rôle de l'utilisateur
+    const [userRole, setUserRole] = useState("");
 
     useEffect(() => {
         // Simule une requête pour récupérer les données du Pokémon
@@ -37,6 +42,17 @@ const Pokemon = () => {
         }).catch((error) => {
             console.error("Erreur lors de la récupération des données du Pokémon :", error);
         });
+
+        // Décoder le rôle de l'utilisateur depuis le token JWT
+        const token = localStorage.getItem("jwtToken");
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token); // Décoder le token
+                setUserRole(decodedToken.role); // Récupérer le rôle depuis le payload
+            } catch (error) {
+                console.error("Erreur lors du décodage du token JWT :", error);
+            }
+        }
     }, [id]);
 
     const handleModifyClick = () => {
@@ -94,17 +110,28 @@ const Pokemon = () => {
         }
     }
 
+    const handleBackClick = () => {
+        navigate(-1); // Retourne à la page précédente
+    };
+
     if (!pokemon) {
         return <div>Loading...</div>;
     }
 
     return (
         <div className={`pokemon-page ${isEditing ? 'editing' : ''}`}>
+            <button className="back-button" onClick={handleBackClick}>
+                Retour
+            </button>
             <div className="card-container">
                 <span><CartePok pokemon={pokemon} /></span>
                 <div className="button-container">
+                    {userRole === "admin" && (
+                        <>
                     <button className="modify" onClick={handleModifyClick}>Modifier</button>
                     <button className="delete" onClick={handleDeleteClick}>Supprimer</button>
+                    </>
+                    )}
                 </div>
             </div>
             {isEditing && (

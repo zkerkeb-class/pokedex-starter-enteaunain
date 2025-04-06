@@ -7,8 +7,8 @@ const CartePok = ({pokemon}) => {
     const [numberOfPokemons, setNumberOfPokemons] = useState(null);
 
     if (numberOfPokemons === null) {
-        getAllPokemons().then((pokemons) => {
-            setNumberOfPokemons(pokemons.length);
+        getAllPokemons().then((data) => {
+            setNumberOfPokemons(data.total);
         }).catch((error) => {
             console.error("Erreur lors de la récupération des Pokémon :", error);
         });

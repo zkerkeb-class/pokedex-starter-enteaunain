@@ -25,3 +25,82 @@ body {
 .grid-container span {
   flex: 1 1 200px;
 }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* Espace entre les boutons */
+  margin-top: 10px; /* Espace au-dessus de la pagination */
+}
+
+.pagination button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pagination button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+select {
+  width: auto; /* Ajuste la largeur automatiquement en fonction du contenu */
+  padding: 10px; /* Ajoute un espace intérieur similaire à l'input */
+  border: 1px solid #ccc; /* Bordure similaire à l'input */
+  border-radius: 5px; /* Coins arrondis */
+  background-color: white; /* Fond blanc */
+  font-size: 16px; /* Taille de police */
+  color: #333; /* Couleur du texte */
+  cursor: pointer; /* Curseur en mode pointer */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Transition pour les interactions */
+}
+
+select:focus {
+  border-color: #007bff; /* Change la couleur de la bordure au focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Ajoute une lueur bleue */
+  outline: none; /* Supprime le contour par défaut */
+}
+
+select:hover {
+  border-color: #0056b3; /* Change la couleur de la bordure au survol */
+}
+
+.logout-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #0056b3;
+}
+
+.logout-button:focus {
+  outline: none;
+}

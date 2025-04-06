@@ -1,14 +1,14 @@
 import axios from 'axios';
 
-const getAllPokemons = () => {
-    return axios({
-        method: "GET",
-        url: "http://localhost:3000/api/pokemons",
-    }).then((response) => {
-        return response.data;
-    }).catch((error) => {
-        console.error("There was an error fetching the pokemons!", error);
-    });
+const getAllPokemons = (page = 1, limit = 12) => {
+  return axios({
+    method: "GET",
+    url: `http://localhost:3000/api/pokemons?page=${page}&limit=${limit}`,
+  }).then((response) => {
+    return response.data;
+  }).catch((error) => {
+    console.error("There was an error fetching the pokemons!", error);
+  });
 };
 
 
@@ -61,13 +61,24 @@ const deletePokemon = (id) => {
   })
 }
 
-const getNumberOfPokemons = () => {
+const login = (email, password) => {
   return axios({
-    method: "GET",
-    url: "http://localhost:3000/api/pokemons/count",
+    method: "POST",
+    url: "http://localhost:3000/api/auth/login",
+    data: { email, password },
   }).then((response) => {
     return response.data;
   })
 };
 
-export { getAllPokemons, getPokemonById, getTypes, createPokemon, updatePokemon, deletePokemon, getNumberOfPokemons };
+const register = (email, name, password) => {
+  return axios({
+    method: "POST",
+    url: "http://localhost:3000/api/auth/register",
+    data: { email, name, password },
+  }).then((response) => {
+    return response.data;
+  })
+};
+
+export { getAllPokemons, getPokemonById, getTypes, createPokemon, updatePokemon, deletePokemon, login, register };

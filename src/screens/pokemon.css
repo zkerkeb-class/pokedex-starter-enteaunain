@@ -89,3 +89,36 @@
     border-radius: 5px;
     cursor: pointer;
 }
+
+.back-button {
+    position: absolute; /* Positionnement absolu */
+    top: 10px; /* Distance depuis le haut de la page */
+    left: 10px; /* Distance depuis le bord gauche de la page */
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background-color: #007bff;
+    border: 2px solid black; /* Bordure noire pour plus de contraste */
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    z-index: 1000; /* Assure que le bouton reste au-dessus des autres éléments */
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+.back-button:focus {
+    outline: none;
+}
+
+.back-button::before {
+    content: "←";
+    margin-right: 8px;
+    font-size: 18px;
+}
