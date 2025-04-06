@@ -5,6 +5,7 @@ import Login from './screens/login';
 import Register from './screens/register';
 import Home from "./screens/home";
 import Pokemon from "./screens/pokemon";
+import AddPokemon from "./screens/add-pokemon";
 import PrivateRoute from './components/privateRoute';
 
 function App() {
@@ -26,6 +27,14 @@ function App() {
           element={
             <PrivateRoute>
               <Pokemon />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/add-pokemon"
+          element={
+            <PrivateRoute>
+              <AddPokemon />
             </PrivateRoute>
           }
         />

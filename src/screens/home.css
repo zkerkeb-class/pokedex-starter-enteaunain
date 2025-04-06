@@ -104,3 +104,26 @@ select:hover {
 .logout-button:focus {
   outline: none;
 }
+
+.add-pokemon-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background-color: #009225;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-pokemon-button:hover {
+  background-color: #006110;
+}
+
+.add-pokemon-button:focus {
+  outline: none;
+}

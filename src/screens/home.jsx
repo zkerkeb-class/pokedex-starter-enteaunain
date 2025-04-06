@@ -3,6 +3,7 @@ import CartePok from '../components/cartePok/cartePok.jsx';
 import './home.css';
 import { getAllPokemons } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 
 function App() {
   const [pokemons, setPokemons] = useState([]); // Pokémon paginés
@@ -13,6 +14,8 @@ function App() {
   const [selectedType, setSelectedType] = useState('');
   const navigate = useNavigate();
 
+  const [userRole, setUserRole] = useState("");
+
   // Charger les Pokémon paginés
   useEffect(() => {
     fetchPaginatedPokemons();
@@ -21,6 +24,19 @@ function App() {
   // Charger tous les Pokémon pour la recherche
   useEffect(() => {
     fetchAllPokemons();
+  }, []);
+
+  // Décoder le rôle de l'utilisateur depuis le token JWT
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token); // Décoder le token
+                setUserRole(decodedToken.role); // Récupérer le rôle depuis le payload
+            } catch (error) {
+                console.error("Erreur lors du décodage du token JWT :", error);
+            }
+        }
   }, []);
 
   const fetchPaginatedPokemons = () => {
@@ -90,6 +106,11 @@ function App() {
       <button className="logout-button" onClick={handleLogout}>
         Déconnexion
       </button>
+      {userRole === "admin" && (
+      <button className="add-pokemon-button" onClick={() => navigate('/add-pokemon')}>
+        Ajouter un Pokémon
+      </button>
+      )}
       <h1>Pokedex Régional</h1>
       <input
         type="text"

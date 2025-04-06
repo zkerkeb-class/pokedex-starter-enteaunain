@@ -43,7 +43,9 @@ const createPokemon = (pokemon) => {
     },
   }).then((response) => {
     return response.data;
-  })
+  }).catch((error) => {
+    throw error;
+  });
 };
 
 const updatePokemon = (pokemon, id) => {
@@ -57,7 +59,9 @@ const updatePokemon = (pokemon, id) => {
     },
   }).then((response) => {
     return response.data;
-  })
+  }).catch((error) => {
+    console.error("Erreur lors de la modification du Pokémon :", error);
+  });
 };
 
 const deletePokemon = (id) => {
@@ -70,7 +74,9 @@ const deletePokemon = (id) => {
     },
   }).then((response) => {
     return response.data;
-  })
+  }).catch((error) => {
+    console.error("Erreur lors de la suppression du Pokémon :", error);
+  });
 }
 
 const login = (email, password) => {
