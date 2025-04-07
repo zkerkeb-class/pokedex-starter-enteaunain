@@ -16,6 +16,16 @@ body {
   font-family: Arial, sans-serif; 
 }
 
+/* Permet le défilement */
+body.scrollable {
+  overflow: auto; /* Active le défilement */
+}
+
+/* Désactive le défilement */
+body.no-scroll {
+  overflow: hidden; /* Désactive le défilement */
+}
+
 .grid-container {
   display: flex;
   flex-wrap: wrap;

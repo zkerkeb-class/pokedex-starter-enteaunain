@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router"; // Import useNavigate
+import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { getPokemonById, updatePokemon, deletePokemon } from "/src/services/api";
 import CartePok from "../components/cartePok/cartePok";
@@ -24,6 +24,16 @@ const Pokemon = () => {
 
     // Récupérer le rôle de l'utilisateur
     const [userRole, setUserRole] = useState("");
+
+    useEffect(() => {
+        // Ajoute une classe spécifique au body pour désactiver le scroll
+        document.body.classList.add('no-scroll');
+
+        // Nettoyage : Supprime la classe lorsque le composant est démonté
+        return () => {
+            document.body.classList.remove('no-scroll');
+        };
+    }, []);
 
     useEffect(() => {
         // Simule une requête pour récupérer les données du Pokémon
@@ -111,7 +121,11 @@ const Pokemon = () => {
     }
 
     const handleBackClick = () => {
-        navigate(-1); // Retourne à la page précédente
+        navigate("/", {replace: true}); // Retourne à la page précédente
+    };
+
+    const handlePlayGameClick = () => {
+        navigate(`/game/${pokemon.id}`); // Redirige vers la page du jeu avec l'ID du Pokémon
     };
 
     if (!pokemon) {
@@ -214,6 +228,23 @@ const Pokemon = () => {
                     </form>
                 </div>
             )}
+            <button
+                style={{
+                    position: "fixed",
+                    bottom: "20px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    padding: "10px 20px",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                }}
+                onClick={handlePlayGameClick}
+            >
+                Jouer avec {pokemon.name.french}
+            </button>
         </div>
     );
 }

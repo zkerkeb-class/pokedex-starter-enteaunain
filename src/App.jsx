@@ -6,6 +6,7 @@ import Register from './screens/register';
 import Home from "./screens/home";
 import Pokemon from "./screens/pokemon";
 import AddPokemon from "./screens/add-pokemon";
+import Game from "./screens/game";
 import PrivateRoute from './components/privateRoute';
 
 function App() {
@@ -35,6 +36,14 @@ function App() {
           element={
             <PrivateRoute>
               <AddPokemon />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/game/:id"
+          element={
+            <PrivateRoute>
+              <Game />
             </PrivateRoute>
           }
         />

@@ -16,6 +16,16 @@ function App() {
 
   const [userRole, setUserRole] = useState("");
 
+  useEffect(() => {
+    // Ajoute une classe spécifique au body pour la page Home
+    document.body.classList.add('scrollable');
+
+    // Nettoyage : Supprime la classe lorsque le composant est démonté
+    return () => {
+        document.body.classList.remove('scrollable');
+    };
+}, []);
+
   // Charger les Pokémon paginés
   useEffect(() => {
     fetchPaginatedPokemons();
