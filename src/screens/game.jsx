@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './game.css';
-import { getPokemonById } from '/src/services/api';
+import { getPokemonById, setScore, getScore } from '/src/services/api';
 
 const Game = () => {
     const { id } = useParams();
@@ -9,6 +9,7 @@ const Game = () => {
     const [pokemonName, setPokemonName] = useState('');
     const navigate = useNavigate();
     let score = 0;
+    const [userScore, setUserScore] = useState(0);
 
     let animationFrameId;
 
@@ -20,6 +21,53 @@ const Game = () => {
         { src: '/src/assets/obstacles/ondine.png', type: 'rectangle' },
         { src: '/src/assets/obstacles/sacha.png', type: 'rectangle' },
     ];
+
+    // Musique
+    const gameMusic = new Audio('/src/assets/music/1.mp3'); // Chemin vers le fichier audio
+    gameMusic.loop = true;
+    gameMusic.volume = 0.5;
+
+    // Badges
+    const badgeImages = [
+        '/src/assets/badges/ame.png',
+        '/src/assets/badges/cascade.png',
+        '/src/assets/badges/foudre.png',
+        '/src/assets/badges/prisme.png',
+        '/src/assets/badges/roche.png',
+        '/src/assets/badges/terre.png',
+        '/src/assets/badges/volcan.png',
+    ];
+    
+    const badges = badgeImages.map((src) => {
+        const img = new Image();
+        img.src = src;
+        return img;
+    });
+
+    useEffect(() => {
+        const fetchScore = async () => {
+          try {
+            const response = await getScore(); // Appel à l'API pour récupérer le score
+            setUserScore(response.score || 0); // Met à jour le score
+          } catch (error) {
+            console.error("Erreur lors de la récupération du score :", error);
+          }
+        };
+      
+        fetchScore();
+      }, [imageUrl]);
+
+      const updateHighScore = async () => {
+        if (score > userScore) {
+            console.log("Score actuel :", score, "Highscore actuel :", userScore);
+            try {
+                const response = await setScore(score); // Met à jour le highscore via l'API
+                console.log("Réponse de l'API setScore :", response);
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour du highscore :", error);
+            }
+        }
+    };
 
     useEffect(() => {
         // Ajoute une classe spécifique au body pour désactiver le scroll
@@ -42,7 +90,12 @@ const Game = () => {
     }, [id]);
 
     useEffect(() => {
+        if(!userScore) return;
         if (!imageUrl) return; // Attendre que l'image soit définie
+        if (!badges.every((badge) => badge.complete)) return; // Attendre que toutes les images soient chargées
+        if (!gameMusic) return; // Attendre que la musique soit chargée
+
+        gameMusic.play();
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -55,6 +108,7 @@ const Game = () => {
         let maxJumpDuration = 43;
         let obstacles = [];
         let maxObstacles = 2;
+        let gameSpeed = 1; // Vitesse initiale
         const groundHeight = 50;
         const pokemonImage = new Image();
         pokemonImage.src = imageUrl;
@@ -72,10 +126,33 @@ const Game = () => {
         
             // Calcule la position horizontale pour centrer le texte
             const text = `Score: ${score}`;
-            const textWidth = ctx.measureText(text).width;
-            const canvasCenterX = canvas.width / 2;
+            const textWidth = ctx.measureText(text).width; // Mesure la largeur du texte
+            const canvasCenterX = canvas.width / 2; // Centre horizontal du canvas
         
             ctx.fillText(text, canvasCenterX - textWidth / 2, 30); // Affiche le texte centré en haut
+        
+            // Dessine les badges sous le score
+            drawBadges(ctx, score, userScore);
+        };
+
+        const drawBadges = (ctx, score, userScore) => {
+            const thresholds = [1000, 2000, 3000, 4000, 5000, 6000, 7000]; // Seuils pour débloquer les badges
+            const badgeSize = 40; // Taille des badges
+            const startX = canvas.width / 2 - (badgeSize * thresholds.length) / 2; // Centre les badges horizontalement
+            const y = 60; // Position verticale sous le score
+        
+            thresholds.forEach((threshold, index) => {
+                const isUnlocked = score >= threshold || userScore >= threshold;
+        
+                // Applique un filtre noir et blanc si le badge n'est pas débloqué
+                ctx.filter = isUnlocked ? 'none' : 'grayscale(100%)';
+        
+                // Dessine le badge
+                ctx.drawImage(badges[index], startX + index * (badgeSize + 10), y, badgeSize, badgeSize);
+            });
+        
+            // Réinitialise le filtre
+            ctx.filter = 'none';
         };
 
         // Initialisation des brins d'herbe
@@ -100,12 +177,6 @@ const Game = () => {
 
         const drawObstacles = () => {
             obstacles.forEach((obstacle) => {
-
-                console.log('Image dimensions:', {
-                    src: obstacle.image.src,
-                    naturalWidth: obstacle.image.naturalWidth,
-                    naturalHeight: obstacle.image.naturalHeight,
-                });
 
                 if (obstacle.image.complete) { // Vérifie si l'image est chargée
                     if (obstacle.type === 'largeSquare' && obstacle.image.src.includes('team-rocket')) {
@@ -174,7 +245,7 @@ const Game = () => {
             // Déplace les obstacles existants
             obstacles = obstacles.map((obstacle) => ({
                 ...obstacle,
-                x: obstacle.x - 5, // Déplace les obstacles vers la gauche
+                x: obstacle.x - 5 * gameSpeed, // Déplace les obstacles vers la gauche
             })).filter((obstacle) => obstacle.x + obstacle.width > 0); // Supprime les obstacles hors écran
 
             // Ajouter un nouvel obstacle si le nombre d'obstacles est inférieur à la limite
@@ -256,7 +327,22 @@ const Game = () => {
                 ) {
                     console.log('Collision détectée !');
                     isGameOver = true;
+
+                    updateHighScore();
+
+                    cancelAnimationFrame(animationFrameId);
+                    window.removeEventListener('keydown', handleKeyDown);
+                    obstacles = [];
+                    gameSpeed = 1;
+                    score = 0;
+                    isGameOver = false;
+                    jumpHeight = 0;
+                    gameMusic.pause();
+                    gameMusic.currentTime = 0; // Reset le timer de la musique
+
                     alert('Game Over!');
+                    gameMusic.pause();
+                    gameMusic.currentTime = 0;
                     window.location.reload();
                 }
             });
@@ -276,7 +362,17 @@ const Game = () => {
             }
         };
 
+        const areImagesLoaded = () => {
+            return badges.every((badge) => badge.complete && badge.naturalWidth !== 0);
+        };
+
         const gameLoop = () => {
+            if (!areImagesLoaded()) {
+        console.log('Waiting for images to load...');
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (isJumping) {
@@ -307,6 +403,8 @@ const Game = () => {
             drawScore();
             checkCollision();
 
+            gameSpeed += 0.001; // Augmente la vitesse du jeu progressivement
+
             animationFrameId = requestAnimationFrame(gameLoop);
         };
         
@@ -320,6 +418,12 @@ const Game = () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('keydown', handleKeyDown);
             obstacles = [];
+            gameSpeed = 1;
+            score = 0;
+            isGameOver = false;
+            jumpHeight = 0;
+            gameMusic.pause();
+            gameMusic.currentTime = 0; // Reset le timer de la musique
         };
     }, [imageUrl]);
 
@@ -328,10 +432,14 @@ const Game = () => {
     };
 
     return (
+        
         <div>
             <button className="back-button" onClick={handleBackClick}>
                 Retour
             </button>
+            <div className="score-container">
+        Highscore : {userScore}
+      </div>
             <h1>Vous jouez avec {pokemonName}</h1>
             <canvas id="gameCanvas" width="1200" height="600" style={{ border: '1px solid black' }}></canvas>
             <p>Appuyez sur la barre d'espace pour sauter !</p>

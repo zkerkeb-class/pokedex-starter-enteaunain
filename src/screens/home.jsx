@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CartePok from '../components/cartePok/cartePok.jsx';
 import './home.css';
-import { getAllPokemons } from '../services/api';
+import { getAllPokemons, getScore } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
 
@@ -15,6 +15,7 @@ function App() {
   const navigate = useNavigate();
 
   const [userRole, setUserRole] = useState("");
+  const [userScore, setUserScore] = useState(0);
 
   useEffect(() => {
     // Ajoute une classe spécifique au body pour la page Home
@@ -24,6 +25,19 @@ function App() {
     return () => {
         document.body.classList.remove('scrollable');
     };
+}, []);
+
+useEffect(() => {
+  const fetchScore = async () => {
+    try {
+      const response = await getScore(); // Appel à l'API pour récupérer le score
+      setUserScore(response.score || 0); // Met à jour le score
+    } catch (error) {
+      console.error("Erreur lors de la récupération du score :", error);
+    }
+  };
+
+  fetchScore();
 }, []);
 
   // Charger les Pokémon paginés
@@ -116,6 +130,9 @@ function App() {
       <button className="logout-button" onClick={handleLogout}>
         Déconnexion
       </button>
+      <div className="score-container">
+        Highscore : {userScore}
+      </div>
       {userRole === "admin" && (
       <button className="add-pokemon-button" onClick={() => navigate('/add-pokemon')}>
         Ajouter un Pokémon

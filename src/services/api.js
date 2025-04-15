@@ -79,6 +79,21 @@ const deletePokemon = (id) => {
   });
 }
 
+const getUser = () => {
+  const token = localStorage.getItem('jwtToken');
+  return axios({
+    method: "GET",
+    url: "http://localhost:3000/profile",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((response) => {
+    return response.data;
+  }).catch((error) => {
+    console.error("Erreur lors de la récupération de l'utilisateur :", error);
+  });
+}
+
 const login = (email, password) => {
   return axios({
     method: "POST",
@@ -99,4 +114,33 @@ const register = (email, name, password) => {
   })
 };
 
-export { getAllPokemons, getPokemonById, getTypes, createPokemon, updatePokemon, deletePokemon, login, register };
+const setScore = (score) => {
+  const token = localStorage.getItem('jwtToken');
+  return axios({
+    method: "PUT",
+    url: "http://localhost:3000/api/auth/setScore",
+    data: { score },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((response) => {
+    console.log(response);
+    return response.data;
+  })
+}
+
+const getScore = (score) => {
+  const token = localStorage.getItem('jwtToken');
+  return axios({
+    method: "GET",
+    url: "http://localhost:3000/api/auth/getScore",
+    data: { score },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((response) => {
+    return response.data;
+  })
+}
+
+export { getAllPokemons, getPokemonById, getTypes, createPokemon, updatePokemon, deletePokemon, login, register , setScore, getScore, getUser};
