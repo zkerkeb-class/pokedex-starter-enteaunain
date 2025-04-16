@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './game.css';
 import { getPokemonById, setScore, getScore } from '/src/services/api';
@@ -8,8 +8,9 @@ const Game = () => {
     const [imageUrl, setImageUrl] = useState('');
     const [pokemonName, setPokemonName] = useState('');
     const navigate = useNavigate();
-    let score = 0;
+    const scoreRef = useRef(0);
     const [userScore, setUserScore] = useState(0);
+    const [pokemonImageLoaded, setPokemonImageLoaded] = useState(false);
 
     let animationFrameId;
 
@@ -23,9 +24,9 @@ const Game = () => {
     ];
 
     // Musique
-    const gameMusic = new Audio('/src/assets/music/1.mp3'); // Chemin vers le fichier audio
+    const gameMusic = new Audio('/src/assets/music/1.mp3');
     gameMusic.loop = true;
-    gameMusic.volume = 0.5;
+    gameMusic.volume = 0.1;
 
     // Badges
     const badgeImages = [
@@ -46,23 +47,20 @@ const Game = () => {
 
     useEffect(() => {
         const fetchScore = async () => {
-          try {
-            const response = await getScore(); // Appel à l'API pour récupérer le score
-            setUserScore(response.score || 0); // Met à jour le score
-          } catch (error) {
-            console.error("Erreur lors de la récupération du score :", error);
-          }
-        };
-      
-        fetchScore();
-      }, [imageUrl]);
-
-      const updateHighScore = async () => {
-        if (score > userScore) {
-            console.log("Score actuel :", score, "Highscore actuel :", userScore);
             try {
-                const response = await setScore(score); // Met à jour le highscore via l'API
-                console.log("Réponse de l'API setScore :", response);
+                const response = await getScore();
+                setUserScore(response.score || 0);
+            } catch (error) {
+                console.error("Erreur lors de la récupération du score :", error);
+            }
+        };
+        fetchScore();
+    }, []);
+
+    const updateHighScore = async () => {
+        if (scoreRef.current > userScore) {
+            try {
+                await setScore(scoreRef.current);
             } catch (error) {
                 console.error("Erreur lors de la mise à jour du highscore :", error);
             }
@@ -70,36 +68,65 @@ const Game = () => {
     };
 
     useEffect(() => {
-        // Ajoute une classe spécifique au body pour désactiver le scroll
         document.body.classList.add('no-scroll');
-
-        // Nettoyage : Supprime la classe lorsque le composant est démonté
         return () => {
             document.body.classList.remove('no-scroll');
         };
     }, []);
 
     useEffect(() => {
-        // Récupérer les données du Pokémon
+        const loadingTimeout = setTimeout(() => {
+            if (!pokemonImageLoaded) {
+                console.error('[Image] Timeout - Le chargement de l\'image a pris trop de temps');
+            }
+        }, 5000);
+    
+        return () => clearTimeout(loadingTimeout);
+    }, [pokemonImageLoaded]);
+    
+    useEffect(() => {
+        console.log('[Game] Initialisation du composant - Chargement des données du Pokémon');
         getPokemonById(id).then((data) => {
-            setImageUrl(data.image); // Met à jour l'image URL
+            console.log(`[Pokemon] Données chargées pour ${data.name.french}`);
             setPokemonName(data.name.french);
+            
+            const img = new Image();
+            img.src = data.image;
+            img.onload = () => {
+                console.log('[Image] Image du Pokémon chargée avec succès');
+                setImageUrl(data.image);
+                setPokemonImageLoaded(true);
+            };
+            img.onerror = () => {
+                console.error('[Image] Erreur de chargement de l\'image du Pokémon');
+                setPokemonImageLoaded(false);
+            };
         }).catch((error) => {
-            console.error("Erreur lors de la récupération des données du Pokémon :", error);
+            console.error("[Pokemon] Erreur lors du chargement:", error);
         });
     }, [id]);
-
+    
     useEffect(() => {
-        if(!userScore) return;
-        if (!imageUrl) return; // Attendre que l'image soit définie
-        if (!badges.every((badge) => badge.complete)) return; // Attendre que toutes les images soient chargées
-        if (!gameMusic) return; // Attendre que la musique soit chargée
+        if (!pokemonImageLoaded) {
+            console.log('[Image] En attente du chargement de l\'image du Pokémon');
+            return;
+        }
+        
+        console.log('[Game] Tous les éléments sont chargés - Démarrage du jeu');
 
-        gameMusic.play();
+        gameMusic.play().catch(error => {
+            console.error('[Musique] Erreur de lecture:', error);
+        });
 
         const canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            console.error('[Canvas] Élément canvas non trouvé');
+            return;
+        }
+
         const ctx = canvas.getContext('2d');
 
+        // Variables du jeu
         let isJumping = false;
         let canJump = true;
         let jumpHeight = 0;
@@ -108,153 +135,161 @@ const Game = () => {
         let maxJumpDuration = 43;
         let obstacles = [];
         let maxObstacles = 2;
-        let gameSpeed = 1; // Vitesse initiale
+        let gameSpeed = 1;
         const groundHeight = 50;
         const pokemonImage = new Image();
         pokemonImage.src = imageUrl;
 
+        // Animation de marche
+        let walkCycle = 0;
+        let walkDirection = 1;
+        const maxWalkCycle = 20;
+        let walkAngle = 0;
+        const maxWalkAngle = 10; // Degrés de rotation pour l'animation de marche
+
         let grassBlades = [];
         const grassBladeCount = 300;
-
-        const updateScore = () => {
-            score += 1; // Incrémente le score à chaque frame
-        };
-        
-        const drawScore = () => {
-            ctx.font = '20px Arial'; // Police et taille du texte
-            ctx.fillStyle = 'black'; // Couleur du texte
-        
-            // Calcule la position horizontale pour centrer le texte
-            const text = `Score: ${score}`;
-            const textWidth = ctx.measureText(text).width; // Mesure la largeur du texte
-            const canvasCenterX = canvas.width / 2; // Centre horizontal du canvas
-        
-            ctx.fillText(text, canvasCenterX - textWidth / 2, 30); // Affiche le texte centré en haut
-        
-            // Dessine les badges sous le score
-            drawBadges(ctx, score, userScore);
-        };
-
-        const drawBadges = (ctx, score, userScore) => {
-            const thresholds = [1000, 2000, 3000, 4000, 5000, 6000, 7000]; // Seuils pour débloquer les badges
-            const badgeSize = 40; // Taille des badges
-            const startX = canvas.width / 2 - (badgeSize * thresholds.length) / 2; // Centre les badges horizontalement
-            const y = 60; // Position verticale sous le score
-        
-            thresholds.forEach((threshold, index) => {
-                const isUnlocked = score >= threshold || userScore >= threshold;
-        
-                // Applique un filtre noir et blanc si le badge n'est pas débloqué
-                ctx.filter = isUnlocked ? 'none' : 'grayscale(100%)';
-        
-                // Dessine le badge
-                ctx.drawImage(badges[index], startX + index * (badgeSize + 10), y, badgeSize, badgeSize);
-            });
-        
-            // Réinitialise le filtre
-            ctx.filter = 'none';
-        };
 
         // Initialisation des brins d'herbe
         for (let i = 0; i < grassBladeCount; i++) {
             grassBlades.push({
-                x: Math.random() * 1200, // Position horizontale aléatoire
-                y: 600 - groundHeight + Math.random() * 10, // Position verticale proche du sol
-                length: 10 + Math.random() * 10, // Longueur aléatoire
-                curve: Math.random() * 10 + 5, // Courbure aléatoire
+                x: Math.random() * 1200,
+                y: 600 - groundHeight + Math.random() * 10,
+                length: 10 + Math.random() * 10,
+                curve: Math.random() * 10 + 5,
                 speed: 5,
             });
-}
+        }
+
+        const updateScore = () => {
+            scoreRef.current += 1;
+        };
+        
+        const drawScore = () => {
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'black';
+            const text = `Score: ${scoreRef.current}`;
+            const textWidth = ctx.measureText(text).width;
+            const canvasCenterX = canvas.width / 2;
+            ctx.fillText(text, canvasCenterX - textWidth / 2, 30);
+            drawBadges(ctx, scoreRef.current, userScore);
+        };
+
+        const drawBadges = (ctx, score, userScore) => {
+            const thresholds = [1000, 2000, 3000, 4000, 5000, 6000, 7000];
+            const badgeSize = 40;
+            const startX = canvas.width / 2 - (badgeSize * thresholds.length) / 2;
+            const y = 60;
+        
+            thresholds.forEach((threshold, index) => {
+                const isUnlocked = score >= threshold || userScore >= threshold;
+                ctx.filter = isUnlocked ? 'none' : 'grayscale(100%)';
+                ctx.drawImage(badges[index], startX + index * (badgeSize + 10), y, badgeSize, badgeSize);
+            });
+            ctx.filter = 'none';
+        };
 
         const drawPokemon = () => {
-            ctx.drawImage(pokemonImage, 100, 500 - jumpHeight - groundHeight, 100, 100);
+            // Mise à jour de l'animation de marche
+            walkCycle += walkDirection;
+            if (walkCycle >= maxWalkCycle || walkCycle <= 0) {
+                walkDirection *= -1;
+            }
+            
+            // Calcul de l'angle de balancement en fonction du cycle de marche
+            walkAngle = (walkCycle / maxWalkCycle) * maxWalkAngle;
+            
+            ctx.save();
+            // Positionne le point de rotation au centre bas du Pokémon
+            ctx.translate(150, 550 - jumpHeight - groundHeight);
+            ctx.rotate(walkAngle * Math.PI / 180);
+            
+            // Dessine le Pokémon avec l'offset de rotation
+            ctx.drawImage(
+                pokemonImage, 
+                -50, // Compensation pour la rotation
+                -50, // Compensation pour la rotation
+                100, 
+                100
+            );
+            
+            ctx.restore();
         };
 
         const drawGround = () => {
             ctx.fillStyle = 'green';
-            ctx.fillRect(0, 600 - groundHeight, 1200, groundHeight); // Dessine le sol
+            ctx.fillRect(0, 600 - groundHeight, 1200, groundHeight);
         };
 
         const drawObstacles = () => {
             obstacles.forEach((obstacle) => {
+                if (!obstacle.image.complete) return;
 
-                if (obstacle.image.complete) { // Vérifie si l'image est chargée
-                    if (obstacle.type === 'largeSquare' && obstacle.image.src.includes('team-rocket')) {
-                        // console.log('Drawing team-rocket with larger dimensions');
-                        ctx.drawImage(
-                            obstacle.image,
-                            obstacle.x,
-                            600 - groundHeight - obstacle.height * 1.2,
-                            obstacle.width * 1.3,
-                            obstacle.height * 1.3
-                        );
-                    } else if (obstacle.type === 'rectangle') {
-                        // console.log('Drawing rectangle obstacle');
-                        ctx.drawImage(
-                            obstacle.image,
-                            obstacle.x,
-                            600 - groundHeight - obstacle.height,
-                            obstacle.width * 1.4,
-                            obstacle.height * 1
-                        );
-                    } else {
-                        // console.log('Drawing default obstacle');
-                        ctx.drawImage(
-                            obstacle.image,
-                            obstacle.x,
-                            600 - groundHeight - obstacle.height,
-                            obstacle.width,
-                            obstacle.height
-                        );
-                    }
+                if (obstacle.type === 'largeSquare' && obstacle.image.src.includes('team-rocket')) {
+                    ctx.drawImage(
+                        obstacle.image,
+                        obstacle.x,
+                        600 - groundHeight - obstacle.height * 1.2,
+                        obstacle.width * 1.3,
+                        obstacle.height * 1.3
+                    );
+                } else if (obstacle.type === 'rectangle') {
+                    ctx.drawImage(
+                        obstacle.image,
+                        obstacle.x,
+                        600 - groundHeight - obstacle.height,
+                        obstacle.width * 1.4,
+                        obstacle.height * 1
+                    );
                 } else {
-                    console.log('Image not loaded:', obstacle.image.src);
+                    ctx.drawImage(
+                        obstacle.image,
+                        obstacle.x,
+                        600 - groundHeight - obstacle.height,
+                        obstacle.width,
+                        obstacle.height
+                    );
                 }
             });
         };
 
         const drawGrass = () => {
-            ctx.strokeStyle = '#04b419'; // Couleur des brins d'herbe
-            ctx.lineWidth = 2; // Épaisseur des brins
+            ctx.strokeStyle = '#04b419';
+            ctx.lineWidth = 2;
         
             grassBlades.forEach((blade) => {
                 ctx.beginPath();
-                ctx.moveTo(blade.x, blade.y); // Point de départ du brin
+                ctx.moveTo(blade.x, blade.y);
                 ctx.quadraticCurveTo(
-                    blade.x + blade.curve, // Point de contrôle pour la courbure
-                    blade.y - blade.length / 2, // Position intermédiaire
-                    blade.x, // Point final
-                    blade.y - blade.length // Position finale
+                    blade.x + blade.curve,
+                    blade.y - blade.length / 2,
+                    blade.x,
+                    blade.y - blade.length
                 );
                 ctx.stroke();
         
-                // Déplace le brin vers la gauche
                 blade.x -= blade.speed;
         
-                // Réinitialise le brin s'il sort de l'écran
                 if (blade.x < 0) {
-                    blade.x = 1200; // Réapparaît à droite
-                    blade.y = 600 - groundHeight + Math.random() * 10; // Nouvelle position verticale
-                    blade.length = 10 + Math.random() * 10; // Nouvelle longueur
-                    blade.curve = Math.random() * 10 + 5; // Nouvelle courbure
+                    blade.x = 1200;
+                    blade.y = 600 - groundHeight + Math.random() * 10;
+                    blade.length = 10 + Math.random() * 10;
+                    blade.curve = Math.random() * 10 + 5;
                 }
             });
         };
 
         const updateObstacles = () => {
-            // Déplace les obstacles existants
             obstacles = obstacles.map((obstacle) => ({
                 ...obstacle,
-                x: obstacle.x - 5 * gameSpeed, // Déplace les obstacles vers la gauche
-            })).filter((obstacle) => obstacle.x + obstacle.width > 0); // Supprime les obstacles hors écran
+                x: obstacle.x - 5 * gameSpeed,
+            })).filter((obstacle) => obstacle.x + obstacle.width > 0);
 
-            // Ajouter un nouvel obstacle si le nombre d'obstacles est inférieur à la limite
             if (obstacles.length < maxObstacles) {
                 const randomObstacle = obstacleImages[Math.floor(Math.random() * obstacleImages.length)];
                 const obstacleImage = new Image();
                 obstacleImage.src = randomObstacle.src;
 
-                // Définir les dimensions en fonction du type d'obstacle
                 let width, height;
                 if (randomObstacle.type === 'smallSquare') {
                     width = 80;
@@ -267,8 +302,7 @@ const Game = () => {
                     height = 150;
                 }
 
-                // Générer une position pour le nouvel obstacle
-                const newObstacleX = 1200; // Position initiale à droite de l'écran
+                const newObstacleX = 1200;
                 const newObstacle = {
                     x: newObstacleX,
                     width,
@@ -277,7 +311,6 @@ const Game = () => {
                     type: randomObstacle.type
                 };
 
-                // Vérifier si le nouvel obstacle chevauche un obstacle existant
                 const isOverlapping = obstacles.some((obstacle) => {
                     return (
                         newObstacle.x < obstacle.x + obstacle.width + 400 &&
@@ -285,7 +318,6 @@ const Game = () => {
                     );
                 });
 
-                // Ajouter le nouvel obstacle uniquement s'il ne chevauche pas un autre obstacle
                 if (!isOverlapping) {
                     obstacles.push(newObstacle);
                 }
@@ -297,52 +329,38 @@ const Game = () => {
         const checkCollision = () => {
             if (isGameOver) return;
         
-            // Définir la hitbox du Pokémon
             const pokemonHitbox = {
-                x: 100, // Position horizontale fixe du Pokémon
-                y: 500 - jumpHeight - groundHeight, // Position verticale du Pokémon
-                width: 100, // Largeur de la hitbox
-                height: 100, // Hauteur de la hitbox
+                x: 100,
+                y: 500 - jumpHeight - groundHeight,
+                width: 100,
+                height: 100,
             };
         
             obstacles.forEach((obstacle) => {
-                // Ajuster la position verticale et la largeur de la hitbox en fonction du type d'obstacle
                 let obstacleHitboxY = 600 - groundHeight - obstacle.height;
-                let obstacleHitboxWidth = obstacle.width; // Par défaut, la largeur de la hitbox est égale à la largeur de l'obstacle
+                let obstacleHitboxWidth = obstacle.width;
         
                 if (obstacle.type === 'largeSquare') {
-                    obstacleHitboxY += 30; // Décale la hitbox vers le bas pour les grands carrés
-                    obstacleHitboxWidth -= 140; // Réduit la largeur de la hitbox des grands carrés
+                    obstacleHitboxY += 30;
+                    obstacleHitboxWidth -= 140;
                 } else if (obstacle.type === 'rectangle') {
-                    obstacleHitboxY += 50; // Décale la hitbox vers le bas pour les rectangles
-                    obstacleHitboxWidth -= 110; // Réduit la largeur de la hitbox des rectangles
+                    obstacleHitboxY += 50;
+                    obstacleHitboxWidth -= 110;
                 }
         
-                // Vérifiez si les hitboxs se chevauchent
                 if (
                     pokemonHitbox.x < obstacle.x + obstacleHitboxWidth &&
                     pokemonHitbox.x + pokemonHitbox.width > obstacle.x &&
                     pokemonHitbox.y < obstacleHitboxY + obstacle.height &&
                     pokemonHitbox.y + pokemonHitbox.height > obstacleHitboxY
                 ) {
-                    console.log('Collision détectée !');
                     isGameOver = true;
-
                     updateHighScore();
-
                     cancelAnimationFrame(animationFrameId);
                     window.removeEventListener('keydown', handleKeyDown);
-                    obstacles = [];
-                    gameSpeed = 1;
-                    score = 0;
-                    isGameOver = false;
-                    jumpHeight = 0;
-                    gameMusic.pause();
-                    gameMusic.currentTime = 0; // Reset le timer de la musique
-
-                    alert('Game Over!');
                     gameMusic.pause();
                     gameMusic.currentTime = 0;
+                    alert('Game Over!');
                     window.location.reload();
                 }
             });
@@ -351,45 +369,35 @@ const Game = () => {
         const handleKeyDown = (e) => {
             if (e.code === 'Space' && canJump) {
                 isJumping = true;
-                canJump = false; // Désactive la possibilité de sauter jusqu'à ce que le Pokémon touche le sol
-                jumpDuration = 0; // Réinitialise la durée du saut
+                canJump = false;
+                jumpDuration = 0;
             }
         };
 
         const handleKeyUp = (e) => {
             if (e.code === 'Space') {
-                jumpDirection = -1; // Commence la descente lorsque la barre d'espace est relâchée
+                jumpDirection = -1;
             }
         };
 
-        const areImagesLoaded = () => {
-            return badges.every((badge) => badge.complete && badge.naturalWidth !== 0);
-        };
-
         const gameLoop = () => {
-            if (!areImagesLoaded()) {
-        console.log('Waiting for images to load...');
-        requestAnimationFrame(gameLoop);
-        return;
-    }
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (isJumping) {
                 if (jumpDirection === 1 && jumpDuration < maxJumpDuration) {
-                    jumpHeight += 8; // Monte plus haut
-                    jumpDuration += 1.2; // Incrémente la durée du saut
+                    jumpHeight += 8;
+                    jumpDuration += 1.2;
                 } else {
-                    jumpDirection = -1; // Commence la descente
+                    jumpDirection = -1;
                 }
 
                 if (jumpDirection === -1) {
-                    jumpHeight -= 8; // Descend
+                    jumpHeight -= 8;
                     if (jumpHeight <= 0) {
-                        jumpHeight = 0; // Revient au sol
-                        isJumping = false; // Termine le saut
-                        canJump = true; // Réactive la possibilité de sauter
-                        jumpDirection = 1; // Réinitialise la direction pour le prochain saut
+                        jumpHeight = 0;
+                        isJumping = false;
+                        canJump = true;
+                        jumpDirection = 1;
                     }
                 }
             }
@@ -403,43 +411,35 @@ const Game = () => {
             drawScore();
             checkCollision();
 
-            gameSpeed += 0.001; // Augmente la vitesse du jeu progressivement
-
+            gameSpeed += 0.0001;
             animationFrameId = requestAnimationFrame(gameLoop);
         };
         
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
-
-        window.addEventListener('keydown', handleKeyDown);
         gameLoop();
 
         return () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('keydown', handleKeyDown);
-            obstacles = [];
-            gameSpeed = 1;
-            score = 0;
-            isGameOver = false;
-            jumpHeight = 0;
+            window.removeEventListener('keyup', handleKeyUp);
             gameMusic.pause();
-            gameMusic.currentTime = 0; // Reset le timer de la musique
+            gameMusic.currentTime = 0;
         };
-    }, [imageUrl]);
+    }, [pokemonImageLoaded]);
 
     const handleBackClick = () => {
-        navigate(`/pokemon/${id}`, {replace: true}); // Retourne à la page précédente
+        navigate(`/pokemon/${id}`, {replace: true});
     };
 
     return (
-        
         <div>
             <button className="back-button" onClick={handleBackClick}>
                 Retour
             </button>
             <div className="score-container">
-        Highscore : {userScore}
-      </div>
+                Highscore : {userScore}
+            </div>
             <h1>Vous jouez avec {pokemonName}</h1>
             <canvas id="gameCanvas" width="1200" height="600" style={{ border: '1px solid black' }}></canvas>
             <p>Appuyez sur la barre d'espace pour sauter !</p>

@@ -25,6 +25,7 @@ const AddPokemon = () => {
         const data = await getAllPokemons(1, 1000); // Récupère tous les Pokémon (limite élevée)
         const totalPokemons = data.pokemons.length;
         setNextId(totalPokemons + 1); // Calculer le prochain ID
+        console.log(`Prochain ID de Pokémon : ${totalPokemons + 1}`);
       } catch (err) {
         console.error('Erreur lors de la récupération des Pokémon :', err);
         setError('Impossible de récupérer les Pokémon existants.');
