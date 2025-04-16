@@ -1,35 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router';
+import Login from './screens/login';
+import Register from './screens/register';
+import Home from "./screens/home";
+import Pokemon from "./screens/pokemon";
+import AddPokemon from "./screens/add-pokemon";
+import Game from "./screens/game";
+import PrivateRoute from './components/privateRoute';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/pokemon/:id"
+          element={
+            <PrivateRoute>
+              <Pokemon />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/add-pokemon"
+          element={
+            <PrivateRoute>
+              <AddPokemon />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/game/:id"
+          element={
+            <PrivateRoute>
+              <Game />
+            </PrivateRoute>
+          }
+        />
+        <Route path="*" element={<Login />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;

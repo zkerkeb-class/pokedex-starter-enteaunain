@@ -1,4 +1,4 @@
-import {pokemonImages} from './imageLibrary';
+import {pokemonImages} from './imageLibrary.js';
 
 
 const pokemonsList = [{
